@@ -1,0 +1,43 @@
+FROM dunglas/frankenphp:1-php8.4
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        bash \
+        curl \
+        git \
+        unzip \
+        zip \
+        ca-certificates \
+        postgresql-client \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN install-php-extensions \
+        pdo_pgsql \
+        bcmath \
+        mbstring \
+        xml \
+        zip \
+        pcntl \
+        opcache \
+        exif \
+        gd \
+        redis \
+        xdebug
+
+
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+RUN usermod --uid 1000 www-data \
+    && groupmod --gid 1000 www-data \
+    && setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/frankenphp
+
+
+
+COPY ./documentation/configuration-files/Caddyfile /etc/caddy/Caddyfile
+COPY ./documentation/configuration-files/php/php.ini /usr/local/etc/php/conf.d/zz-app.ini
+
+WORKDIR /var/www
+
+USER www-data
+
+ENTRYPOINT ["documentation/configuration-files/entrypoint.sh"]
