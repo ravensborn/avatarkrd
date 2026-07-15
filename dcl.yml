@@ -1,0 +1,72 @@
+services:
+  app:
+    build: &app-build
+      context: .
+      dockerfile: DockerfileLocal
+    image: avatarkrd-as:local
+    container_name: avatarkrd-as-app
+    restart: unless-stopped
+    user: "1000:1000"
+    environment:
+      - CONTAINER_ROLE=app
+    ports:
+      - "8089:8080"
+    volumes:
+      - .:/var/www
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - avatarkrd-network
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/up || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  database:
+    image: postgres:16-alpine
+    container_name: avatarkrd-as-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: laravel
+      POSTGRES_USER: laravel
+      POSTGRES_PASSWORD: laravel
+    #    ports:
+    #      - "5432:5432"
+    volumes:
+      - ./documentation/backend-docker/data/postgres-data:/var/lib/postgresql/data
+    networks:
+      - avatarkrd-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U laravel -d laravel"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: avatarkrd-as-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - ./documentation/backend-docker/data/redis-data:/data
+    networks:
+      - avatarkrd-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  avatarkrd-network:
+    driver: bridge
+
+volumes:
+  caddy-data:
+  caddy-config:

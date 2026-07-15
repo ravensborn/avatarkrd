@@ -1,0 +1,21 @@
+{
+	{$CADDY_GLOBAL_OPTIONS}
+
+	frankenphp
+
+	# https://caddyserver.com/docs/caddyfile/directives#sorting-algorithm
+	order php_server before respond
+}
+
+:8080 {
+	log {
+		output stdout
+		format console
+	}
+
+	root * /var/www/public
+	encode zstd br gzip
+
+
+	php_server
+}
