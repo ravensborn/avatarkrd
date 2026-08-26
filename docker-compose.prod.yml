@@ -6,7 +6,6 @@ services:
     image: avatarkrd-as:prod
     container_name: avatarkrd-app
     restart: unless-stopped
-    user: "1000:1000"
     environment:
       - CONTAINER_ROLE=app
     volumes:
