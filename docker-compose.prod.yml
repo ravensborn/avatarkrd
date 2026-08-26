@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: DockerfileProd
-    image: avatarkrd-as:prod
+    image: avatarkrd:prod
     container_name: avatarkrd-app
     restart: unless-stopped
     environment:
@@ -15,7 +15,7 @@ services:
     networks:
       - dokploy-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/up || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:80/up || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
